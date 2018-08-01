@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Seoyoung2/nodeJS_tutorials#readme",
   "dependencies": {
+    "express": "^4.16.3",
     "underscore": "^1.9.1"
   }
 }
