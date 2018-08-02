@@ -1,8 +1,17 @@
 var express = require('express');
 var app = express();
 
+app.locals.pretty = true;
+// pug템플릿 엔진과 express연결
+app.set('view engine', 'pug');
+app.set('views', './views');
+
 //정적인 파일이 위치할 디렉토리 지정
 app.use(express.static('public'));
+
+app.get('/template', function(req, res){
+    res.render('temp', {time: Date(), _title: 'Pug'});
+});
 
 app.get('/', function(req, res){
     res.send('Hello home page!');
