@@ -30,7 +30,7 @@ app.post('/form_receiver', function(req, res){
   var description = req.body.description;
   res.send(title+','+description);
 });
-
+//바뀔수 있는 정보는 /:이런식으로!
 app.get('/topic/:id', function(req, res){
     var topics = [
         'Javascript is ...',
