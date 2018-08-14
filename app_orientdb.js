@@ -11,12 +11,21 @@ var _storage = multer.diskStorage({
 })
 var upload = multer({ storage: _storage })
 var fs = require('fs'); //파일시스템 제어하는 기본모듈
+var OrientDB = require('orientjs');
+var server = OrientDB({
+  host: 'localhost',
+  port: 2424,
+  username: 'root',
+  password: 'cheese97!'
+});
+var db = server.use('o2');
 var app = express();
+
 app.use(bodyParser.urlencoded({extended: false}));
 
 app.locals.pretty = true;
 app.use('/user', express.static('uploads'));
-app.set('views', './views_file');
+app.set('views', './views_orientdb');
 app.set('view engine', 'pug');
 
 app.get('/upload', function(req, res){
@@ -35,6 +44,20 @@ app.get('/topic/new', function(req, res){
   });
 });
 app.get(['/topic', '/topic/:id'], function(req, res){
+  var sql = 'SELECT FROM topic';
+  db.query(sql).then(function(topics){
+    var id = req.params.id;
+    if(id){
+      var sql = 'SELECT FROM topic WHERE @rid=:rid';
+      db.query(sql, {params: {rid: id}}).then(function(topic){
+      res.render('view', {topics:topics, topic:topic[0]});
+      })
+    } else{
+      res.render('view', {topics:topics});
+    }
+  });
+  
+  /*
   fs.readdir('data', function(err, files){
     if(err){
       console.log(err);
@@ -55,6 +78,7 @@ app.get(['/topic', '/topic/:id'], function(req, res){
       res.render('view', {topics: files, title: 'Welcome', description: 'Hello, JavaScript for server.'});
     }
   });
+  */
 });
 
 app.post('/topic', function(req, res){
