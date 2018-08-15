@@ -52,7 +52,7 @@ app.get(['/topic', '/topic/:id'], function(req, res){
       });
     } else {
       //id값이 없을 때
-      res.render('view', {topics: files, tile: 'Welcome', description: 'Hello, JavaScript for server.'});
+      res.render('view', {topics: files, title: 'Welcome', description: 'Hello, JavaScript for server.'});
     }
   });
 });
