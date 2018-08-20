@@ -2,6 +2,8 @@ var express = require('express');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var bodyParser = require('body-parser');
+var bkfd2Password = require("pbkdf2-password");
+var hasher = bkfd2Password();
 var app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 
@@ -14,7 +16,8 @@ app.use(session({
 
 var users = [{
   username:'seoyoung',
-  password:'111',
+  password:'mTi+/qIi9s5ZFRPDxJLY8yAhlLnWTgYZNXfXlQ32e1u/hZePhlq41NkRfffEV+T92TGTlfxEitFZ98QhzofzFHLneWMWiEekxHD1qMrTH1CWY01NbngaAfgfveJPRivhLxLD1iJajwGmYAXhr69VrN2CWkVD+aS1wKbZd94bcaE=',
+  salt:'O0iC9xqMBUVl3BdO50+JWkpvVcA5g2VNaYTR5Hc45g+/iXy4PzcCI7GJN5h5r3aLxIhgMN8HSh0DhyqwAp8lLw==',
   displayName: 'Seoyoung'
 }];
 
@@ -65,14 +68,20 @@ app.post('/auth/login', function(req, res){
     var uname = req.body.username;
     var pwd = req.body.password;
     for(var i in users){
-      if(uname === users[i].username && pwd === users[i].password){
-        req.session.displayName = users[i].displayName;
-        return req.session.save(function(){
-          res.redirect('/welcome');
+      var user = users[i];
+      if(uname === user.username) {
+        return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash){
+          if(hash === user.password){
+            req.session.displayName = user.displayName;
+            req.session.save(function(){
+              res.redirect('/welcome');
+            })
+          } else {
+            res.send('Who are you? <a href="/auth/login">login</a>');
+          }
         });
       }
     }
-    res.send('Who are you? <a href="/auth/login">login</a><a href="/auth/register">Register</a>');
 })
 
 app.get('/auth/logout', function(req, res){
@@ -104,16 +113,19 @@ app.get('/auth/register', function(req, res){
 })
 
 app.post('/auth/register', function(req, res){
-  var user = {
-    username: req.body.username,
-    password: req.body.password,
-    displayName: req.body.displayName
-  }
-  users.push(user);
-  req.session.displayName = req.body.displayName;
-  req.session.save(function(){
-    res.redirect('/welcome');
-  });
+  hasher({password:req.body.password}, function(err, pass, salt, hash){
+    var user = {
+      username: req.body.username,
+      password: hash,
+      salt: salt,
+      displayName: req.body.displayName
+    }
+    users.push(user);
+    req.session.displayName = req.body.displayName;
+    req.session.save(function(){
+      res.redirect('/welcome');
+    });
+  })
 })
 
 app.listen(3004, function(){
